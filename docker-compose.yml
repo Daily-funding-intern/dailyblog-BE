@@ -6,13 +6,15 @@ services:
     container_name: daily_blog_db
     environment:
       MYSQL_DATABASE: ${DB_NAME}
-      MYSQL_USER: ${DB_USER}
-      MYSQL_PASSWORD: ${DB_PASSWORD}
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     ports:
       - "${DB_PORT}:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+      - ./daily_blog_dump.sql:/docker-entrypoint-initdb.d/daily_blog_dump.sql
+      - ./wait-for-it.sh:/wait-for-it.sh
 
   backend:
     build: .
@@ -21,8 +23,8 @@ services:
       - "8000:8000"
     environment:
       DB_NAME: ${DB_NAME}
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
+      DB_USER: ${MYSQL_USER}
+      DB_PASSWORD: ${MYSQL_PASSWORD}
       DB_HOST: db
       DB_PORT: 3306
     depends_on:
