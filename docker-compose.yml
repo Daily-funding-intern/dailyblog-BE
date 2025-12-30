@@ -1,5 +1,5 @@
 services:
-  daily_blog_db:
+  daily_db:
     image: mysql:8.0
     container_name: daily_blog_db
     environment:
@@ -23,10 +23,10 @@ services:
       DB_NAME: ${DB_NAME}
       DB_USER: ${MYSQL_USER}
       DB_PASSWORD: ${MYSQL_PASSWORD}
-      DB_HOST: daily_blog_db
+      DB_HOST: daily_db
       DB_PORT: 3306
     depends_on:
-      - daily_blog_db
+      - daily_db
 
 volumes:
   mysql_data:

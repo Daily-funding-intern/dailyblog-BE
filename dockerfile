@@ -18,4 +18,5 @@ RUN chmod +x wait-for-it.sh
 
 EXPOSE 8000
 
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+CMD ["./wait-for-it.sh", "daily_blog_db:3306", "--", "python", "manage.py", "runserver", "0.0.0.0:8000"]
+
