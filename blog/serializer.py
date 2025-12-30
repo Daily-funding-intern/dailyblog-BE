@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Category,Post
+from blog.utils.html_parsar import extract_description
 
 class CategorySerializer(serializers.ModelSerializer): #카테고리 전체 조회용
     class Meta:
@@ -24,8 +25,27 @@ class PostDetailSerializer(serializers.ModelSerializer): #글 상세보기 조�
         model=Post
         fields=['id','title','content','category']
 
-class PostRecommendSerializer(serializers.ModelSerializer):
+class PostRecommendSerializer(serializers.ModelSerializer): #글 추천 조회용
     category = CategorySerializer(read_only=True)
     class Meta:
         model=Post
         fields=['id','title','thumbnail','category']
+        
+class PostCreateSerializer(serializers.ModelSerializer): # 글 생성 post
+    category = serializers.PrimaryKeyRelatedField(
+        queryset=Category.objects.all()
+    )
+    class Meta:
+        model = Post
+        fields = [
+            'title',
+            'subtitle',
+            'content',
+            'thumbnail',
+            'category',
+            'is_featured',
+        ]
+    def create(self, validated_data): #save 실행 시, 호출됨
+        content = validated_data.get("content", "")
+        validated_data["description"] = extract_description(content)
+        return super().create(validated_data)

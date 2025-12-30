@@ -1,11 +1,11 @@
-from rest_framework import viewsets
+from rest_framework import viewsets,mixins
 from rest_framework.decorators import action
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.response import Response
 from django.http import JsonResponse
 import uuid
 from blog.models import Post
-from blog.serializer import PostListSerializer,PostThumbnailSerializer,PostDetailSerializer, PostRecommendSerializer
+from blog.serializer import PostListSerializer,PostThumbnailSerializer,PostDetailSerializer, PostRecommendSerializer, PostCreateSerializer
 from blog.utils.s3 import upload_file_to_s3
 
 class PostViewSet(viewsets.ModelViewSet):
@@ -41,6 +41,12 @@ class PostViewSet(viewsets.ModelViewSet):
         queryset = queryset[:6]
         serializer = PostRecommendSerializer(queryset, many=True)
         return Response(serializer.data)
+
+class PostCreateViewSet(mixins.CreateModelMixin,
+    viewsets.GenericViewSet):
+    queryset = Post.objects.all()
+    serializer_class = PostCreateSerializer
+    
 
 @csrf_exempt
 def UploadView(request):
