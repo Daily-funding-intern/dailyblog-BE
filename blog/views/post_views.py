@@ -28,7 +28,7 @@ class PostViewSet(viewsets.ModelViewSet):
         
     @action(detail=False, methods=['get'])
     def featured(self, request):
-        queryset = self.get_queryset().filter(is_featured=True)
+        queryset = self.get_queryset().order_by('-created_at')[:15]
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
     
