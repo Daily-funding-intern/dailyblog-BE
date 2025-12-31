@@ -6,7 +6,7 @@ from django.http import JsonResponse
 import uuid
 from blog.models import Post
 from blog.serializer import PostListSerializer,PostThumbnailSerializer,PostDetailSerializer, PostRecommendSerializer, PostCreateSerializer
-from blog.utils.s3 import upload_file_to_s3
+from blog.utils.s3 import upload_file_to_s3_tmp, finalize_uploaded_images
 
 class PostViewSet(viewsets.ModelViewSet):
     queryset=Post.objects.all()
@@ -55,8 +55,7 @@ def UploadView(request):
     file = request.FILES.get('file')
     if not file:
         return JsonResponse({'error' : '파일이 존재하지 않습니다.'}, status=400)
-    filename=f"uploads/{uuid.uuid4()}_{file.name}"
-    file_url=upload_file_to_s3(file,filename)
+    file_url=upload_file_to_s3_tmp(file)
     return JsonResponse({
         'file_url': file_url
     })
