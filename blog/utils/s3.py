@@ -59,4 +59,23 @@ def finalize_uploaded_images(html_content):
         html_content = html_content.replace(tmp_url, final_url)
 
     return html_content
-        
+    
+def finalize_uploaded_thumbnail(thumbnail):
+    s3 = get_s3_client()
+    bucket = settings.AWS_STORAGE_BUCKET_NAME
+    tmp_key = thumbnail.split(".amazonaws.com/")[-1]
+    _, ext = os.path.splitext(tmp_key)
+    final_key = f"thumbnails/{uuid.uuid4().hex}{ext.lower()}"
+    s3.copy_object(
+        Bucket=bucket,
+        CopySource={'Bucket': bucket, 'Key': tmp_key},
+        Key=final_key
+    )
+    s3.delete_object(
+        Bucket=bucket,
+        Key=tmp_key
+    )
+    return (
+        f"https://{bucket}.s3."
+        f"{settings.AWS_S3_REGION_NAME}.amazonaws.com/{final_key}"
+    )
