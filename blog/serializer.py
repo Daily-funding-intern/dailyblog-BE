@@ -23,7 +23,7 @@ class PostDetailSerializer(serializers.ModelSerializer): #글 상세보기 조�
     category = CategorySerializer(read_only=True)
     class Meta:
         model=Post
-        fields=['id','title','content','category']
+        fields=['id','title','content','category','subtitle','thumbnail']
 
 class PostRecommendSerializer(serializers.ModelSerializer): #글 추천 조회용
     category = CategorySerializer(read_only=True)
