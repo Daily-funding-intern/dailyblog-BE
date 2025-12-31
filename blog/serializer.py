@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import Category,Post
 from blog.utils.html_parsar import extract_description
+from blog.utils.s3 import finalize_uploaded_images
 
 class CategorySerializer(serializers.ModelSerializer): #카테고리 전체 조회용
     class Meta:
@@ -47,5 +48,7 @@ class PostCreateSerializer(serializers.ModelSerializer): # 글 생성 post
         ]
     def create(self, validated_data): #save 실행 시, 호출됨
         content = validated_data.get("content", "")
+        content = finalize_uploaded_images(content)
+        validated_data["content"] = content
         validated_data["description"] = extract_description(content)
         return super().create(validated_data)
