@@ -3,10 +3,11 @@ from rest_framework.decorators import action
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.response import Response
 from django.http import JsonResponse
-import uuid
 from blog.models import Post
 from blog.serializer import PostListSerializer,PostThumbnailSerializer,PostDetailSerializer, PostRecommendSerializer, PostCreateSerializer, PostUpdateSerializer
 from blog.utils.s3 import upload_file_to_s3_tmp
+from rest_framework.permissions import IsAdminUser, AllowAny
+from rest_framework.views import APIView
 
 class PostViewSet(viewsets.ModelViewSet):
     queryset=Post.objects.all()
@@ -20,6 +21,11 @@ class PostViewSet(viewsets.ModelViewSet):
         if self.action in ["update", "partial_update"]:
             return PostUpdateSerializer
         return PostListSerializer
+    
+    def get_permissions(self):
+        if self.action in ["create", "update", "partial_update", "destroy"]:
+            return [IsAdminUser()]
+        return [AllowAny()]
     
     def get_queryset(self):
         queryset = Post.objects.all().order_by('-created_at')
@@ -48,16 +54,14 @@ class PostCreateViewSet(mixins.CreateModelMixin,
     viewsets.GenericViewSet):
     queryset = Post.objects.all()
     serializer_class = PostCreateSerializer
+    permission_classes = [IsAdminUser]
     
 
-@csrf_exempt
-def UploadView(request):
-    if request.method != 'POST':
-        return JsonResponse({'error': 'POST만 가능'}, status=405)
-    file = request.FILES.get('file')
-    if not file:
-        return JsonResponse({'error' : '파일이 존재하지 않습니다.'}, status=400)
-    file_url=upload_file_to_s3_tmp(file)
-    return JsonResponse({
-        'file_url': file_url
-    })
+class UploadView(APIView):
+    permission_classes = [IsAdminUser]
+    def post(self, request):
+        file = request.FILES.get("file")
+        if not file:
+            return Response({"error": "파일이 존재하지 않습니다."}, status=400)
+        file_url = upload_file_to_s3_tmp(file)
+        return Response({"file_url": file_url})
