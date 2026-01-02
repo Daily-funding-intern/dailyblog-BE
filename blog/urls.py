@@ -13,6 +13,6 @@ router.register(
 
 urlpatterns = [
     path('',include(router.urls)),
-    path('uploadfile/', UploadView),
+    path('uploadfile/', UploadView.as_view()),
     path('check-auth/',MeView.as_view()),
 ]
