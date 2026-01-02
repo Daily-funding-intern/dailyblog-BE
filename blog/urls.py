@@ -14,5 +14,5 @@ router.register(
 urlpatterns = [
     path('',include(router.urls)),
     path('uploadfile/', UploadView),
-    path('/check-auth/',MeView),
+    path('check-auth/',MeView.as_view()),
 ]
