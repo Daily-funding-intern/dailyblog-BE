@@ -56,3 +56,18 @@ class PostCreateSerializer(serializers.ModelSerializer): # 글 생성 post
         
         validated_data["description"] = extract_description(content)
         return super().create(validated_data)
+
+class PostUpdateSerializer(serializers.ModelSerializer):
+    category = serializers.PrimaryKeyRelatedField(
+        queryset=Category.objects.all()
+    )
+    class Meta:
+        model = Post
+        fields = [
+            "title",
+            "subtitle",
+            "content",
+            "category",
+            "thumbnail",
+            "is_featured",
+        ]
