@@ -6,7 +6,7 @@ from django.http import JsonResponse
 import uuid
 from blog.models import Post
 from blog.serializer import PostListSerializer,PostThumbnailSerializer,PostDetailSerializer, PostRecommendSerializer, PostCreateSerializer, PostUpdateSerializer
-from blog.utils.s3 import upload_file_to_s3_tmp, finalize_uploaded_images
+from blog.utils.s3 import upload_file_to_s3_tmp
 
 class PostViewSet(viewsets.ModelViewSet):
     queryset=Post.objects.all()

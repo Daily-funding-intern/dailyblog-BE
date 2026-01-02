@@ -71,3 +71,14 @@ class PostUpdateSerializer(serializers.ModelSerializer):
             "thumbnail",
             "is_featured",
         ]
+    def update(self, instance, validated_data):
+        if "content" in validated_data:
+            content = validated_data["content"]
+            content = finalize_uploaded_images(content)
+            validated_data["content"] = content
+            validated_data["description"] = extract_description(content)
+        if "thumbnail" in validated_data:
+            validated_data["thumbnail"] = finalize_uploaded_thumbnail(
+                validated_data["thumbnail"]
+            )
+        return super().update(instance, validated_data)
