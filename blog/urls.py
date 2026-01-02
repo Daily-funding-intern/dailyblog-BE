@@ -1,5 +1,5 @@
 from django.urls import path,include
-from blog.views import CategoryViewSet,PostViewSet, UploadView, PostCreateViewSet
+from blog.views import CategoryViewSet,PostViewSet, UploadView, PostCreateViewSet, MeView
 from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
@@ -14,4 +14,5 @@ router.register(
 urlpatterns = [
     path('',include(router.urls)),
     path('uploadfile/', UploadView),
+    path('check-auth/',MeView.as_view()),
 ]
