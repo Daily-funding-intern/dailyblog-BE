@@ -77,8 +77,15 @@ class PostUpdateSerializer(serializers.ModelSerializer):
             content = finalize_uploaded_images(content)
             validated_data["content"] = content
             validated_data["description"] = extract_description(content)
+            
         if "thumbnail" in validated_data:
-            validated_data["thumbnail"] = finalize_uploaded_thumbnail(
-                validated_data["thumbnail"]
-            )
+            new_thumbnail = validated_data["thumbnail"]
+
+        # 실제로 변경된 경우만 finalize
+        if new_thumbnail and new_thumbnail != instance.thumbnail:
+            validated_data["thumbnail"] = finalize_uploaded_thumbnail(new_thumbnail)
+        else:
+            # 변경 안 됐으면 업데이트 대상에서 제거
+            validated_data.pop("thumbnail")
+
         return super().update(instance, validated_data)
