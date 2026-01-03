@@ -7,5 +7,4 @@ class MyAdminSite(admin.AdminSite):
         if request.user.is_authenticated:
             return redirect('http://localhost:3000/admin/post')
         return response
-
 admin_site = MyAdminSite()
