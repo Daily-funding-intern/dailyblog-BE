@@ -28,7 +28,7 @@ class PostViewSet(viewsets.ModelViewSet):
         return [AllowAny()]
     
     def get_queryset(self):
-        queryset = Post.objects.all().order_by('-created_at')
+        queryset = Post.objects.all().order_by('-id')
         category_id = self.request.query_params.get('category_id')
         if category_id:
             queryset = queryset.filter(category_id=category_id)
