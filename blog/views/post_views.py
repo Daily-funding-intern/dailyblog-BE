@@ -26,15 +26,19 @@ class PostViewSet(viewsets.ModelViewSet):
         return [AllowAny()]
     
     def get_queryset(self):
-        queryset = Post.objects.all().order_by('-id')
+        queryset = Post.objects.filter(is_featured = True).order_by('-id')
         category_id = self.request.query_params.get('category_id')
         if category_id:
             queryset = queryset.filter(category_id=category_id)
         return queryset
         
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=["get"])
     def featured(self, request):
-        queryset = self.get_queryset().order_by('-id')[:15]
+        queryset = (
+            Post.objects
+            .filter(is_featured=True)
+            .order_by("-id")[:15]
+        )
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
     
