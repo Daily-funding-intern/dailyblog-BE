@@ -79,3 +79,29 @@ def finalize_uploaded_thumbnail(thumbnail):
         f"https://{bucket}.s3."
         f"{settings.AWS_S3_REGION_NAME}.amazonaws.com/{final_key}"
     )
+    
+def extract_image_urls(html_content):
+    return re.findall(
+        r'https://[^"]+\.amazonaws\.com/posts/[^"]+',
+        html_content
+    )
+
+def get_s3_key_from_url(url):
+    return url.split(".amazonaws.com/")[-1]
+
+def delete_images_from_s3(html_content):
+    s3 = get_s3_client()
+    bucket = settings.AWS_STORAGE_BUCKET_NAME
+    image_urls = extract_image_urls(html_content)
+    for url in image_urls:
+        key = get_s3_key_from_url(url)
+        s3.delete_object(Bucket=bucket, Key=key)
+        
+def delete_thumbnail_from_s3(thumbnail_url):
+    if not thumbnail_url:
+        return
+    s3 = get_s3_client()
+    bucket = settings.AWS_STORAGE_BUCKET_NAME
+    key = thumbnail_url.split(".amazonaws.com/")[-1]
+
+    s3.delete_object(Bucket=bucket, Key=key)
