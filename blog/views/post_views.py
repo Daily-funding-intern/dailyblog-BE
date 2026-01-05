@@ -1,8 +1,6 @@
 from rest_framework import viewsets,mixins
 from rest_framework.decorators import action
-from django.views.decorators.csrf import csrf_exempt
 from rest_framework.response import Response
-from django.http import JsonResponse
 from blog.models import Post
 from blog.serializer import PostListSerializer,PostThumbnailSerializer,PostDetailSerializer, PostRecommendSerializer, PostCreateSerializer, PostUpdateSerializer
 from blog.utils.s3 import upload_file_to_s3_tmp
@@ -36,14 +34,14 @@ class PostViewSet(viewsets.ModelViewSet):
         
     @action(detail=False, methods=['get'])
     def featured(self, request):
-        queryset = self.get_queryset().order_by('-created_at')[:15]
+        queryset = self.get_queryset().order_by('-id')[:15]
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
     
     @action(detail=False, methods=['get'])
     def recommend(self, request):
         category_id = request.query_params.get('category_id')
-        queryset = self.get_queryset().order_by('-created_at')
+        queryset = self.get_queryset().order_by('-id')
         if category_id:
             queryset = queryset.filter(category_id=category_id)
         queryset = queryset[:6]
