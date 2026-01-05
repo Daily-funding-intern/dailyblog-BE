@@ -2,7 +2,8 @@ from rest_framework import viewsets,mixins
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from blog.models import Post
-from blog.serializer import PostListSerializer,PostThumbnailSerializer,PostDetailSerializer, PostRecommendSerializer, PostCreateSerializer, PostUpdateSerializer
+from blog.serializer import PostListSerializer,PostThumbnailSerializer,PostDetailSerializer, PostRecommendSerializer
+from blog.serializer import PostCreateSerializer, PostUpdateSerializer, PostAdminListSerializer
 from blog.utils.s3 import upload_file_to_s3_tmp, delete_images_from_s3, delete_thumbnail_from_s3
 from rest_framework.permissions import IsAdminUser, AllowAny
 from rest_framework.views import APIView
@@ -26,7 +27,10 @@ class PostViewSet(viewsets.ModelViewSet):
         return [AllowAny()]
     
     def get_queryset(self):
-        queryset = Post.objects.filter(is_featured = True).order_by('-id')
+        queryset = Post.objects.all().order_by('-id')
+
+        if not self.request.user.is_staff:
+            queryset = queryset.filter(is_featured=True)
         category_id = self.request.query_params.get('category_id')
         if category_id:
             queryset = queryset.filter(category_id=category_id)
@@ -72,3 +76,8 @@ class UploadView(APIView):
             return Response({"error": "파일이 존재하지 않습니다."}, status=400)
         file_url = upload_file_to_s3_tmp(file)
         return Response({"file_url": file_url})
+    
+class AdminPostView(viewsets.ModelViewSet):
+    permission_classes = [IsAdminUser]
+    queryset = Post.objects.all().order_by('-id')
+    serializer_class = PostAdminListSerializer

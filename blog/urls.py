@@ -1,5 +1,5 @@
 from django.urls import path,include
-from blog.views import CategoryViewSet,PostViewSet, UploadView, PostCreateViewSet, MeView
+from blog.views import CategoryViewSet,PostViewSet, UploadView, PostCreateViewSet, MeView, AdminPostView
 from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
@@ -10,6 +10,7 @@ router.register(
     PostCreateViewSet,
     basename='post-create'
 )
+router.register(r'adminPage', AdminPostView, basename="admin-post")
 
 urlpatterns = [
     path('',include(router.urls)),
