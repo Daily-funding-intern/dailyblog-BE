@@ -12,7 +12,7 @@ class PostListSerializer(serializers.ModelSerializer): #게시글 전체 조회�
     category = CategorySerializer(read_only=True)
     class Meta:
         model=Post
-        fields=['id','title','description','thumbnail','category']
+        fields=['id','title','description','thumbnail','category','created_at']
         
 class PostThumbnailSerializer(serializers.ModelSerializer): #홈화면 상단 썸네일 조회용
     category = CategorySerializer(read_only=True)
