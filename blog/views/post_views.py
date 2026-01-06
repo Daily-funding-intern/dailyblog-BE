@@ -18,8 +18,10 @@ class PostViewSet(viewsets.ModelViewSet):
             return PostListSerializer
         elif self.action == 'retrieve':
             return PostDetailSerializer
-        if self.action in ["update", "partial_update"]:
+        elif self.action == ["update", "partial_update"]:
             return PostUpdateSerializer
+        elif self.action == 'create':
+            return PostCreateSerializer
         return PostListSerializer
     
     def get_permissions(self):
@@ -28,7 +30,7 @@ class PostViewSet(viewsets.ModelViewSet):
         return [AllowAny()]
     
     def get_queryset(self):
-        queryset = Post.objects.all().order_by('-id')
+        queryset = Post.objects.all().select_related().order_by('-id')
 
     # 일반 사용자만 featured 필터
         if not self.request.user.is_staff:
@@ -56,7 +58,8 @@ class PostViewSet(viewsets.ModelViewSet):
     def featured(self, request):
         queryset = (
             Post.objects
-            .filter(is_featured=True)
+            .filter(is_featured=True).
+            select_related()
             .order_by("-id")[:15]
         )
         serializer = self.get_serializer(queryset, many=True)
@@ -65,7 +68,7 @@ class PostViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def recommend(self, request):
         category_id = request.query_params.get('category_id')
-        queryset = self.get_queryset().order_by('-id')
+        queryset = self.get_queryset().select_related().order_by('-id')
         if category_id:
             queryset = queryset.filter(category_id=category_id)
         queryset = queryset[:6]
@@ -77,11 +80,6 @@ class PostViewSet(viewsets.ModelViewSet):
         delete_thumbnail_from_s3(instance.thumbnail)
         instance.delete()
 
-class PostCreateViewSet(mixins.CreateModelMixin,
-    viewsets.GenericViewSet):
-    queryset = Post.objects.all().select_related('category')
-    serializer_class = PostCreateSerializer
-    permission_classes = [IsAdminUser]
     
 
 class UploadView(APIView):
@@ -95,5 +93,5 @@ class UploadView(APIView):
     
 class AdminPostView(viewsets.ModelViewSet):
     permission_classes = [IsAdminUser]
-    queryset = Post.objects.all().select_related('category').order_by('-id')
+    queryset = Post.objects.all().select_related().order_by('-id')
     serializer_class = PostAdminListSerializer
