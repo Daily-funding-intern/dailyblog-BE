@@ -10,7 +10,7 @@ from rest_framework.views import APIView
 from django.db.models import F
 
 class PostViewSet(viewsets.ModelViewSet):
-    queryset=Post.objects.all()
+    queryset = Post.objects.all().select_related('category')
     def get_serializer_class(self):
         if self.action == 'featured':
             return PostThumbnailSerializer
@@ -79,7 +79,7 @@ class PostViewSet(viewsets.ModelViewSet):
 
 class PostCreateViewSet(mixins.CreateModelMixin,
     viewsets.GenericViewSet):
-    queryset = Post.objects.all()
+    queryset = Post.objects.all().select_related('category')
     serializer_class = PostCreateSerializer
     permission_classes = [IsAdminUser]
     
@@ -95,5 +95,5 @@ class UploadView(APIView):
     
 class AdminPostView(viewsets.ModelViewSet):
     permission_classes = [IsAdminUser]
-    queryset = Post.objects.all().order_by('-id')
+    queryset = Post.objects.all().select_related('category').order_by('-id')
     serializer_class = PostAdminListSerializer
