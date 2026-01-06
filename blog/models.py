@@ -15,6 +15,7 @@ class Post(models.Model):
     thumbnail=models.CharField(max_length=255)
     category=models.ForeignKey(Category, on_delete=models.CASCADE)
     is_featured = models.BooleanField(default=False) #블로그 초기 화면 슬라이스 표시 필드
+    visit_count = models.IntegerField(default=0) # 방문수 확인 컬럼
       
     def __str__(self):
         return self.title

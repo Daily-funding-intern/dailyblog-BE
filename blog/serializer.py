@@ -24,7 +24,7 @@ class PostDetailSerializer(serializers.ModelSerializer): #글 상세보기 조�
     category = CategorySerializer(read_only=True)
     class Meta:
         model=Post
-        fields=['id','title','content','category','subtitle','thumbnail','is_featured']
+        fields=['id','title','content','category','subtitle','thumbnail','is_featured','visit_count']
 
 class PostRecommendSerializer(serializers.ModelSerializer): #글 추천 조회용
     category = CategorySerializer(read_only=True)
@@ -91,9 +91,7 @@ class PostUpdateSerializer(serializers.ModelSerializer):
         return super().update(instance, validated_data)
     
 class PostAdminListSerializer(serializers.ModelSerializer):
-    category = serializers.PrimaryKeyRelatedField(
-        queryset=Category.objects.all()
-    )
+    category = CategorySerializer(read_only=True)
     class Meta:
         model=Post
-        fields = "__all__"
+        fields = ['id','title','category','created_at','visit_count']

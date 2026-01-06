@@ -7,6 +7,7 @@ from blog.serializer import PostCreateSerializer, PostUpdateSerializer, PostAdmi
 from blog.utils.s3 import upload_file_to_s3_tmp, delete_images_from_s3, delete_thumbnail_from_s3
 from rest_framework.permissions import IsAdminUser, AllowAny
 from rest_framework.views import APIView
+from django.db.models import F
 
 class PostViewSet(viewsets.ModelViewSet):
     queryset=Post.objects.all()
@@ -29,13 +30,28 @@ class PostViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = Post.objects.all().order_by('-id')
 
+    # 일반 사용자만 featured 필터
         if not self.request.user.is_staff:
             queryset = queryset.filter(is_featured=True)
+
         category_id = self.request.query_params.get('category_id')
         if category_id:
             queryset = queryset.filter(category_id=category_id)
+
         return queryset
+    
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if not request.user.is_staff:
+            Post.objects.filter(pk=instance.pk).update(
+                visit_count=F('visit_count') + 1
+            )
+            instance.refresh_from_db()
+
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
         
+    
     @action(detail=False, methods=["get"])
     def featured(self, request):
         queryset = (
