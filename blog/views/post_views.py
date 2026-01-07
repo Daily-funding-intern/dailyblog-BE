@@ -10,15 +10,17 @@ from rest_framework.views import APIView
 from django.db.models import F
 
 class PostViewSet(viewsets.ModelViewSet):
-    queryset = Post.objects.all().select_related('category')
+    queryset = Post.objects.all().select_related('category','user').order_by('-id')
     def get_serializer_class(self):
         if self.action == 'featured':
             return PostThumbnailSerializer
-        elif self.action == 'list':
+        elif self.action == 'list' and not self.request.user.is_staff:
             return PostListSerializer
+        elif self.action == 'list' and self.request.user.is_staff:
+            return PostAdminListSerializer
         elif self.action == 'retrieve':
             return PostDetailSerializer
-        elif self.action == ["update", "partial_update"]:
+        elif self.action in ["update", "partial_update"]:
             return PostUpdateSerializer
         elif self.action == 'create':
             return PostCreateSerializer
@@ -30,9 +32,8 @@ class PostViewSet(viewsets.ModelViewSet):
         return [AllowAny()]
     
     def get_queryset(self):
-        queryset = Post.objects.all().select_related().order_by('-id')
-
     # 일반 사용자만 featured 필터
+        queryset = Post.objects.all().select_related('category').order_by('-id')
         if not self.request.user.is_staff:
             queryset = queryset.filter(is_featured=True)
 
@@ -41,6 +42,11 @@ class PostViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(category_id=category_id)
 
         return queryset
+    
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
     
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -52,14 +58,13 @@ class PostViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
-        
     
     @action(detail=False, methods=["get"])
     def featured(self, request):
         queryset = (
             Post.objects
             .filter(is_featured=True).
-            select_related()
+            select_related('category')
             .order_by("-id")[:15]
         )
         serializer = self.get_serializer(queryset, many=True)
@@ -68,7 +73,7 @@ class PostViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def recommend(self, request):
         category_id = request.query_params.get('category_id')
-        queryset = self.get_queryset().select_related().order_by('-id')
+        queryset = self.get_queryset().select_related('category').order_by('-id')
         if category_id:
             queryset = queryset.filter(category_id=category_id)
         queryset = queryset[:6]
@@ -90,8 +95,3 @@ class UploadView(APIView):
             return Response({"error": "파일이 존재하지 않습니다."}, status=400)
         file_url = upload_file_to_s3_tmp(file)
         return Response({"file_url": file_url})
-    
-class AdminPostView(viewsets.ModelViewSet):
-    permission_classes = [IsAdminUser]
-    queryset = Post.objects.all().select_related().order_by('-id')
-    serializer_class = PostAdminListSerializer

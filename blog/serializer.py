@@ -2,6 +2,8 @@ from rest_framework import serializers
 from .models import Category,Post
 from blog.utils.html_parsar import extract_description
 from blog.utils.s3 import finalize_uploaded_images, finalize_uploaded_thumbnail
+from django.conf import settings
+from django.contrib.auth import get_user_model
 
 class CategorySerializer(serializers.ModelSerializer): #카테고리 전체 조회용
     class Meta:
@@ -50,11 +52,13 @@ class PostCreateSerializer(serializers.ModelSerializer): # 글 생성 post
         content = validated_data.get("content", "")
         content = finalize_uploaded_images(content)
         validated_data["content"] = content
-        
         thumbnail = validated_data.get("thumbnail")
         validated_data["thumbnail"] = finalize_uploaded_thumbnail(thumbnail)
-        
         validated_data["description"] = extract_description(content)
+        
+        user = self.context['request'].user
+        validated_data['user'] = user
+        
         return super().create(validated_data)
 
 class PostUpdateSerializer(serializers.ModelSerializer):
@@ -87,11 +91,23 @@ class PostUpdateSerializer(serializers.ModelSerializer):
         else:
             # 변경 안 됐으면 업데이트 대상에서 제거
             validated_data.pop("thumbnail")
+        
+        user = self.context['request'].user
+        validated_data['user'] = user
 
         return super().update(instance, validated_data)
     
+
+User = get_user_model()
+
+class UserSimpleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username']
+
 class PostAdminListSerializer(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True)
+    creator = UserSimpleSerializer(source='user', read_only=True)
     class Meta:
         model=Post
-        fields = ['id','title','category','created_at','visit_count']
+        fields = ['id','title','category','created_at','visit_count','creator','thumbnail']

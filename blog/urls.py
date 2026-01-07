@@ -1,11 +1,10 @@
 from django.urls import path,include
-from blog.views import CategoryViewSet,PostViewSet, UploadView,MeView, AdminPostView
+from blog.views import CategoryViewSet,PostViewSet, UploadView,MeView
 from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
 router.register(r'category', CategoryViewSet)
 router.register(r'post',PostViewSet)
-router.register(r'adminPage', AdminPostView, basename="admin-post")
 
 urlpatterns = [
     path('',include(router.urls)),
