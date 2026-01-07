@@ -33,7 +33,7 @@ class PostViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
     # 일반 사용자만 featured 필터
-        queryset = Post.objects.all().select_related('category').order_by('-id')
+        queryset = super().get_queryset()
         if not self.request.user.is_staff:
             queryset = queryset.filter(is_featured=True)
 
@@ -61,19 +61,14 @@ class PostViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=["get"])
     def featured(self, request):
-        queryset = (
-            Post.objects
-            .filter(is_featured=True).
-            select_related('category')
-            .order_by("-id")[:15]
-        )
+        queryset = super().get_queryset().filter(is_featured=True)[:15]
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
     
     @action(detail=False, methods=['get'])
     def recommend(self, request):
         category_id = request.query_params.get('category_id')
-        queryset = self.get_queryset().select_related('category').order_by('-id')
+        queryset = self.get_queryset()
         if category_id:
             queryset = queryset.filter(category_id=category_id)
         queryset = queryset[:6]
