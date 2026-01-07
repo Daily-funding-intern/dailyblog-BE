@@ -4,35 +4,39 @@ from blog.utils.html_parsar import extract_description
 from blog.utils.s3 import finalize_uploaded_images, finalize_uploaded_thumbnail
 from django.conf import settings
 from django.contrib.auth import get_user_model
+        
 
 class CategorySerializer(serializers.ModelSerializer): #카테고리 전체 조회용
     class Meta:
         model=Category
         fields=['id','name']
     
-class PostListSerializer(serializers.ModelSerializer): #게시글 전체 조회용
+class BaseSerializer(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True)
     class Meta:
-        model=Post
-        fields=['id','title','description','thumbnail','category','created_at']
+        model = Post
+        fields = ['id','title','thumbnail','category']
+    
+class PostListSerializer(BaseSerializer): #게시글 전체 조회용
+    class Meta(BaseSerializer.Meta):
+        fields =BaseSerializer.Meta.fields + ['description','created_at']
         
-class PostThumbnailSerializer(serializers.ModelSerializer): #홈화면 상단 썸네일 조회용
-    category = CategorySerializer(read_only=True)
-    class Meta:
-        model=Post
-        fields=['id','title','subtitle','thumbnail','is_featured','category']
+class PostThumbnailSerializer(BaseSerializer): #홈화면 상단 썸네일 조회용
+    class Meta(BaseSerializer.Meta):
+        fields =BaseSerializer.Meta.fields +['subtitle','is_featured']
 
-class PostDetailSerializer(serializers.ModelSerializer): #글 상세보기 조회용
-    category = CategorySerializer(read_only=True)
-    class Meta:
-        model=Post
-        fields=['id','title','content','category','subtitle','thumbnail','is_featured','visit_count']
+class PostDetailSerializer(BaseSerializer):
+    class Meta(BaseSerializer.Meta):
+        fields = BaseSerializer.Meta.fields + [
+            'content',
+            'subtitle',
+            'is_featured',
+            'visit_count',
+        ]
 
-class PostRecommendSerializer(serializers.ModelSerializer): #글 추천 조회용
-    category = CategorySerializer(read_only=True)
-    class Meta:
-        model=Post
-        fields=['id','title','thumbnail','category']
+class PostRecommendSerializer(BaseSerializer): #글 추천 조회용
+    class Meta(BaseSerializer.Meta):
+        fields =BaseSerializer.Meta.fields
         
 class PostCreateSerializer(serializers.ModelSerializer): # 글 생성 post
     category = serializers.PrimaryKeyRelatedField(
@@ -105,9 +109,7 @@ class UserSimpleSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'username']
 
-class PostAdminListSerializer(serializers.ModelSerializer):
-    category = CategorySerializer(read_only=True)
+class PostAdminListSerializer(BaseSerializer):
     creator = UserSimpleSerializer(source='user', read_only=True)
-    class Meta:
-        model=Post
-        fields = ['id','title','category','created_at','visit_count','creator','thumbnail']
+    class Meta(BaseSerializer.Meta):
+        fields =BaseSerializer.Meta.fields + ['created_at','visit_count','creator']
