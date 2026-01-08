@@ -113,3 +113,6 @@ class PostAdminListSerializer(BaseSerializer):
     creator = UserSimpleSerializer(source='user', read_only=True)
     class Meta(BaseSerializer.Meta):
         fields =BaseSerializer.Meta.fields + ['created_at','visit_count','creator']
+
+class UploadSerializer(serializers.Serializer):
+    file = serializers.FileField()
